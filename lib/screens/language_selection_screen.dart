@@ -192,13 +192,10 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       
                       if (isAdPosition) {
                         // Show small native ad
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: NativeSmallAdWidget(
-                            height: 80,
-                            adKey: 'language_selection',
-                            size: NativeAdSize.small,
-                          ),
+                        return NativeSmallAdWidget(
+                          height: 80,
+                          adKey: 'language_selection',
+                          size: NativeAdSize.small,
                         );
                       }
                       final languageIndex = index - (index ~/ 3);
@@ -206,7 +203,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       final isSelected = _selectedLanguage == language.code;
 
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                        padding: const EdgeInsets.only(bottom: 5.0,top: 5.0),
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(

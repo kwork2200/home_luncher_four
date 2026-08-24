@@ -580,14 +580,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         ),
         const SizedBox(height: 50),
-
-        // Small Native Ad at bottom
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: HybridNativeAdWidget(
-            height: 220,
-          ),
-        ),
       ],
     );
   }

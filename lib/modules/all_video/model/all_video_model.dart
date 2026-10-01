@@ -1,15 +1,24 @@
-import 'package:photo_manager/photo_manager.dart';
-
 class AllVideoItem {
-  final AssetEntity asset;
+  final String path;
+  final String name;
   final int fileSizeBytes;
+  final DateTime createdAt;
+  final int durationMs;
+  final String? thumbnailPath;
 
-  AllVideoItem({required this.asset, required this.fileSizeBytes});
+  AllVideoItem({
+    required this.path,
+    required this.name,
+    required this.fileSizeBytes,
+    required this.createdAt,
+    this.durationMs = 0,
+    this.thumbnailPath,
+  });
 
-  String get title => asset.title ?? 'Unknown';
+  String get title => name;
 
   String get durationText {
-    final d = asset.videoDuration;
+    final d = Duration(milliseconds: durationMs);
     final h = d.inHours;
     final m = d.inMinutes.remainder(60);
     final s = d.inSeconds.remainder(60);
@@ -29,12 +38,21 @@ class AllVideoItem {
   }
 
   String get sourceTag {
-    final path = asset.relativePath?.toLowerCase() ?? '';
-    if (path.contains('whatsapp')) return 'WhatsApp Video';
-    if (path.contains('download')) return 'Download';
-    if (path.contains('camera') || path.contains('dcim')) return 'Camera';
+    final lowerPath = path.toLowerCase();
+    if (lowerPath.contains('whatsapp')) return 'WhatsApp Video';
+    if (lowerPath.contains('download')) return 'Download';
+    if (lowerPath.contains('camera') || lowerPath.contains('dcim')) return 'Camera';
     return 'Video';
   }
 
-  DateTime get createdAt => asset.createDateTime;
+  factory AllVideoItem.fromJson(Map<String, dynamic> json) {
+    return AllVideoItem(
+      path: json['path'] as String,
+      name: json['name'] as String,
+      fileSizeBytes: json['size'] as int,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(json['dateAdded'] as int),
+      durationMs: json['duration'] as int? ?? 0,
+      thumbnailPath: json['thumbnailPath'] as String?,
+    );
+  }
 }

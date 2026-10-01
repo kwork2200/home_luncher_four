@@ -1,16 +1,16 @@
 import 'package:get/get.dart';
-import 'package:photo_manager/photo_manager.dart';
 import 'package:home_launcher_three/services/screen_analytics_service.dart';
+import 'package:home_launcher_three/services/video_service.dart';
 
 class FolderModel {
   final String name;
   final int videoCount;
-  final AssetPathEntity assetPath;
+  final List<String> videoPaths;
 
   FolderModel({
     required this.name,
     required this.videoCount,
-    required this.assetPath,
+    required this.videoPaths,
   });
 }
 
@@ -31,31 +31,38 @@ class FolderListController extends GetxController {
   Future<void> fetchFolders() async {
     isLoading.value = true;
 
-    final permitted = await PhotoManager.requestPermissionExtend();
-    if (!permitted.isAuth) {
-      isLoading.value = false;
-      folders.clear();
-      return;
-    }
-
-    final albums = await PhotoManager.getAssetPathList(
-      type: RequestType.video,
-    );
-
-    final folderList = <FolderModel>[];
-    for (final album in albums) {
-      final count = await album.assetCountAsync;
-      if (count > 0) {
-        folderList.add(FolderModel(
-          name: album.name,
-          videoCount: count,
-          assetPath: album,
-        ));
+    try {
+      final videos = await VideoService.fetchAllVideos();
+      
+      // Group videos by folder
+      final Map<String, List<String>> folderMap = {};
+      
+      for (final video in videos) {
+        final folderPath = video.path.substring(0, video.path.lastIndexOf('/'));
+        final folderName = folderPath.split('/').last;
+        
+        if (!folderMap.containsKey(folderName)) {
+          folderMap[folderName] = [];
+        }
+        folderMap[folderName]!.add(video.path);
       }
+      
+      // Convert to FolderModel list
+      final folderList = folderMap.entries.map((entry) {
+        return FolderModel(
+          name: entry.key,
+          videoCount: entry.value.length,
+          videoPaths: entry.value,
+        );
+      }).toList();
+      
+      folders.assignAll(folderList);
+    } catch (e) {
+      print('Error fetching folders: $e');
+      folders.clear();
+    } finally {
+      isLoading.value = false;
     }
-
-    folders.assignAll(folderList);
-    isLoading.value = false;
   }
 
   void navigateToFolder(String folderName) {

@@ -51,12 +51,14 @@ class VideoListTile extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Wrap(
-                      spacing: 6,
-                      children: [
-                        VideoTag(text: item.sourceTag),
-                        VideoTag(text: item.sizeText),
-                      ]
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        children: [
+                          VideoTag(text: item.sourceTag),
+                          VideoTag(text: item.sizeText),
+                        ]
+                      ),
                     ),
                     InkWell(
                       onTap: () => showDialog(

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:home_launcher_three/modules/all_video/model/all_video_model.dart';
@@ -5,7 +6,8 @@ import 'package:home_launcher_three/utils/app_colors.dart';
 import 'package:home_launcher_three/utils/app_dimensions.dart';
 import 'package:home_launcher_three/utils/app_font_size.dart';
 import 'package:home_launcher_three/widgets/common/common_text.dart';
-import 'package:photo_manager/photo_manager.dart';
+import 'package:video_thumbnail/video_thumbnail.dart' as vt;
+import 'package:path_provider/path_provider.dart';
 
 class VideoThumbnail extends StatelessWidget {
   final AllVideoItem item;
@@ -19,6 +21,22 @@ class VideoThumbnail extends StatelessWidget {
     required this.height,
   });
 
+  Future<String?> _generateThumbnail() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      return await vt.VideoThumbnail.thumbnailFile(
+        video: item.path,
+        thumbnailPath: tempDir.path,
+        imageFormat: vt.ImageFormat.JPEG,
+        maxHeight: 300,
+        quality: 75,
+      );
+    } catch (e) {
+      print('Error generating thumbnail: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -29,16 +47,28 @@ class VideoThumbnail extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            FutureBuilder(
-              future: item.asset.thumbnailDataWithSize(
-                const ThumbnailSize(300, 300),
-              ),
+            FutureBuilder<String?>(
+              future: _generateThumbnail(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.data != null) {
-                  return Image.memory(snapshot.data!, fit: BoxFit.cover);
+                  return Image.file(
+                    File(snapshot.data!),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.black12,
+                        child: Icon(Icons.videocam, size: 48.sp, color: Colors.grey),
+                      );
+                    },
+                  );
                 }
-                return Container(color: Colors.black12);
+                return Container(
+                  color: Colors.black12,
+                  child: snapshot.connectionState == ConnectionState.waiting
+                      ? Center(child: CircularProgressIndicator(strokeWidth: 2))
+                      : Icon(Icons.videocam, size: 48.sp, color: Colors.grey),
+                );
               },
             ),
             Positioned(

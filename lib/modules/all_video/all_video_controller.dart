@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:home_launcher_three/modules/all_video/model/all_video_model.dart';
 import 'package:home_launcher_three/modules/all_video/video_controller_interface.dart';
 import 'package:home_launcher_three/services/screen_analytics_service.dart';
-import 'package:photo_manager/photo_manager.dart';
+import 'package:home_launcher_three/services/video_service.dart';
 
 class AllVideoController extends VideoControllerInterface {
   final RxList<AllVideoItem> allVideos = <AllVideoItem>[].obs;
@@ -33,40 +33,27 @@ class AllVideoController extends VideoControllerInterface {
   }
 
   Future<void> fetchVideos() async {
+    print('AllVideoController: Starting fetchVideos...');
     isLoading.value = true;
 
-    final permitted = await PhotoManager.requestPermissionExtend();
-    if (!permitted.isAuth) {
-      isLoading.value = false;
+    try {
+      print('AllVideoController: Calling VideoService.fetchAllVideos()...');
+      final videos = await VideoService.fetchAllVideos();
+      print('AllVideoController: Got ${videos.length} videos from service');
+      
+      allVideos.assignAll(videos);
+      print('AllVideoController: Assigned ${allVideos.length} videos to allVideos');
+      
+      _applySort();
+      print('AllVideoController: Applied sort, displayed videos: ${displayedVideos.length}');
+    } catch (e) {
+      print('AllVideoController ERROR: Error fetching videos: $e');
       allVideos.clear();
       displayedVideos.clear();
-      return;
-    }
-
-    final albums = await PhotoManager.getAssetPathList(
-      type: RequestType.video,
-      onlyAll: true,
-    );
-
-    if (albums.isEmpty) {
+    } finally {
       isLoading.value = false;
-      return;
+      print('AllVideoController: Finished, isLoading = false');
     }
-
-    final recentAlbum = albums.first;
-    final count = await recentAlbum.assetCountAsync;
-    final assets = await recentAlbum.getAssetListRange(start: 0, end: count);
-
-    final items = <AllVideoItem>[];
-    for (final asset in assets) {
-      final file = await asset.file;
-      final size = file != null && await file.exists() ? await file.length() : 0;
-      items.add(AllVideoItem(asset: asset, fileSizeBytes: size));
-    }
-
-    allVideos.assignAll(items);
-    _applySort();
-    isLoading.value = false;
   }
 
   void toggleView() => isGridView.value = !isGridView.value;
@@ -114,7 +101,6 @@ class AllVideoController extends VideoControllerInterface {
     final lower = query.toLowerCase();
     final filtered = allVideos.where((v) => v.title.toLowerCase().contains(lower)).toList();
     displayedVideos.assignAll(filtered);
-    // Re-apply sort after filtering to maintain sort order
     _applySortToDisplayedList();
   }
 
@@ -144,14 +130,17 @@ class AllVideoController extends VideoControllerInterface {
   }
 
   Future<bool> deleteVideo(AllVideoItem item) async {
-    final result = await PhotoManager.editor.deleteWithIds([item.asset.id]);
-    if (result.isNotEmpty) {
-      allVideos.removeWhere((v) => v.asset.id == item.asset.id);
-      displayedVideos.removeWhere((v) => v.asset.id == item.asset.id);
+    final success = await VideoService.deleteVideo(item.path);
+    if (success) {
+      allVideos.removeWhere((v) => v.path == item.path);
+      displayedVideos.removeWhere((v) => v.path == item.path);
       return true;
     }
     return false;
   }
 
-  Future<File?> getFile(AllVideoItem item) => item.asset.file;
+  Future<File?> getFile(AllVideoItem item) async {
+    final file = File(item.path);
+    return await file.exists() ? file : null;
+  }
 }

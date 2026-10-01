@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:home_launcher_three/modules/all_video/model/all_video_model.dart';
 import 'package:home_launcher_three/modules/all_video/video_controller_interface.dart';
 import 'package:home_launcher_three/services/screen_analytics_service.dart';
-import 'package:photo_manager/photo_manager.dart';
+import 'package:home_launcher_three/services/video_service.dart';
 
 class FolderVideosController extends VideoControllerInterface {
   final RxList<AllVideoItem> allVideos = <AllVideoItem>[].obs;
@@ -15,7 +15,6 @@ class FolderVideosController extends VideoControllerInterface {
   final RxBool isSearching = false.obs;
   
   final String folderName;
-  AssetPathEntity? folder;
 
   FolderVideosController({required this.folderName});
 
@@ -40,41 +39,24 @@ class FolderVideosController extends VideoControllerInterface {
   Future<void> fetchVideos() async {
     isLoading.value = true;
 
-    final permitted = await PhotoManager.requestPermissionExtend();
-    if (!permitted.isAuth) {
-      isLoading.value = false;
+    try {
+      final allDeviceVideos = await VideoService.fetchAllVideos();
+      
+      // Filter videos by folder name
+      final folderVideos = allDeviceVideos.where((video) {
+        final videoFolderName = video.path.substring(0, video.path.lastIndexOf('/')).split('/').last;
+        return videoFolderName == folderName;
+      }).toList();
+
+      allVideos.assignAll(folderVideos);
+      _applySort();
+    } catch (e) {
+      print('Error fetching folder videos: $e');
       allVideos.clear();
       displayedVideos.clear();
-      return;
-    }
-
-    final albums = await PhotoManager.getAssetPathList(
-      type: RequestType.video,
-    );
-
-    folder = albums.firstWhere(
-      (album) => album.name == folderName,
-      orElse: () => albums.isNotEmpty ? albums.first : albums.first,
-    );
-
-    if (folder == null) {
+    } finally {
       isLoading.value = false;
-      return;
     }
-
-    final count = await folder!.assetCountAsync;
-    final assets = await folder!.getAssetListRange(start: 0, end: count);
-
-    final items = <AllVideoItem>[];
-    for (final asset in assets) {
-      final file = await asset.file;
-      final size = file != null && await file.exists() ? await file.length() : 0;
-      items.add(AllVideoItem(asset: asset, fileSizeBytes: size));
-    }
-
-    allVideos.assignAll(items);
-    _applySort();
-    isLoading.value = false;
   }
 
   void toggleView() => isGridView.value = !isGridView.value;
@@ -151,14 +133,17 @@ class FolderVideosController extends VideoControllerInterface {
   }
 
   Future<bool> deleteVideo(AllVideoItem item) async {
-    final result = await PhotoManager.editor.deleteWithIds([item.asset.id]);
-    if (result.isNotEmpty) {
-      allVideos.removeWhere((v) => v.asset.id == item.asset.id);
-      displayedVideos.removeWhere((v) => v.asset.id == item.asset.id);
+    final success = await VideoService.deleteVideo(item.path);
+    if (success) {
+      allVideos.removeWhere((v) => v.path == item.path);
+      displayedVideos.removeWhere((v) => v.path == item.path);
       return true;
     }
     return false;
   }
 
-  Future<File?> getFile(AllVideoItem item) => item.asset.file;
+  Future<File?> getFile(AllVideoItem item) async {
+    final file = File(item.path);
+    return await file.exists() ? file : null;
+  }
 }

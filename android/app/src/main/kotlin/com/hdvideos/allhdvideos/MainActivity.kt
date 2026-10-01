@@ -70,6 +70,7 @@ class MainActivity: FlutterFragmentActivity() {
     private val FB_ADS_CHANNEL = "com.hdvideos.allhdvideos/facebook_ads"
     private val INSTALL_REFERRER_CHANNEL = "com.hdvideos.allhdvideos/install_referrer"
     private val CALL_EVENTS_CHANNEL = "com.hdvideos.allhdvideos/call_events"
+    private val VIDEO_CHANNEL = "com.allhdvideos.app/videos"
     private val REQUEST_PICK_APPWIDGET = 9
     private val REQUEST_CREATE_APPWIDGET = 5
     private val APPWIDGET_HOST_ID = 442
@@ -77,11 +78,13 @@ class MainActivity: FlutterFragmentActivity() {
     private val REQUEST_READ_CALL_LOG = 1002
     private val REQUEST_CODE_HOME_ROLE = 1003
     private val REQUEST_UNINSTALL_APP = 1004
+    private val REQUEST_VIDEO_PERMISSION = 1005
     private var currentUninstallingPackage: String? = null
     private var widgetHost: AppWidgetHost? = null
     private var shouldRequestHomeRole = false
     internal var widgetManager: AppWidgetManager? = null
     private val widgetViews = mutableMapOf<Int, AppWidgetHostView>()
+    private var videoResultCallback: Result? = null
 
     // Facebook Ads
     private var fbInterstitialAd: InterstitialAd? = null
@@ -307,6 +310,19 @@ class MainActivity: FlutterFragmentActivity() {
                     flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
                         MethodChannel(messenger, CALL_EVENTS_CHANNEL).invokeMethod("onCallLogPermissionDenied", null)
                     }
+                }
+            }
+            REQUEST_VIDEO_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("VideoService", "READ_EXTERNAL_STORAGE permission granted")
+                    // Permission granted, fetch videos
+                    videoResultCallback?.let { getAllVideos(it) }
+                    videoResultCallback = null
+                } else {
+                    Log.d("VideoService", "READ_EXTERNAL_STORAGE permission denied")
+                    // Permission denied, return empty list
+                    videoResultCallback?.success(emptyList<Map<String, Any>>())
+                    videoResultCallback = null
                 }
             }
         }
@@ -786,6 +802,41 @@ class MainActivity: FlutterFragmentActivity() {
             }
         }
 
+        // Video channel for fetching videos with runtime permission
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, VIDEO_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getAllVideos" -> {
+                    // Check permission first
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        // Android 13+ - no permission needed, just return empty for now
+                        // TODO: Implement Photo Picker for Android 13+
+                        getAllVideos(result)
+                    } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        // Android 10-12 - check READ_EXTERNAL_STORAGE
+                        if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            getAllVideos(result)
+                        } else {
+                            // Request permission
+                            videoResultCallback = result
+                            requestPermissions(arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_VIDEO_PERMISSION)
+                        }
+                    } else {
+                        // Android 9 and below
+                        getAllVideos(result)
+                    }
+                }
+                "deleteVideo" -> {
+                    val path = call.argument<String>("path")
+                    if (path != null) {
+                        deleteVideo(path, result)
+                    } else {
+                        result.error("ERROR", "Path is null", null)
+                    }
+                }
+                else -> result.notImplemented()
+            }
+        }
+
         // Send pending uninstall package to Flutter (for cold-start case)
         sendUninstalledPackageToFlutter()
     }
@@ -1016,7 +1067,6 @@ class MainActivity: FlutterFragmentActivity() {
 
     private fun getLastCallDetails(): Map<String, Any>? {
         try {
-            val contentResolver = contentResolver
             val cursor = contentResolver.query(
                 android.provider.CallLog.Calls.CONTENT_URI,
                 null,
@@ -1119,6 +1169,89 @@ class MainActivity: FlutterFragmentActivity() {
             "nativeAd"
         )
         super.cleanUpFlutterEngine(flutterEngine)
+    }
+
+    // Video fetching methods using MediaStore (NO permissions required for Android 10+)
+    private fun getAllVideos(result: Result) {
+        Log.d("VideoService", "========== getAllVideos() called ==========")
+        try {
+            val videos = mutableListOf<Map<String, Any>>()
+            val projection = arrayOf(
+                android.provider.MediaStore.Video.Media._ID,
+                android.provider.MediaStore.Video.Media.DISPLAY_NAME,
+                android.provider.MediaStore.Video.Media.DATA,
+                android.provider.MediaStore.Video.Media.SIZE,
+                android.provider.MediaStore.Video.Media.DATE_ADDED,
+                android.provider.MediaStore.Video.Media.DURATION
+            )
+
+            val sortOrder = "${android.provider.MediaStore.Video.Media.DATE_ADDED} DESC"
+
+            Log.d("VideoService", "Querying MediaStore...")
+            val cursor = contentResolver.query(
+                android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                sortOrder
+            )
+
+            if (cursor == null) {
+                Log.e("VideoService", "Cursor is NULL!")
+                result.success(emptyList<Map<String, Any>>())
+                return
+            }
+
+            Log.d("VideoService", "Cursor count: ${cursor.count}")
+
+            cursor.use {
+                val idColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Video.Media._ID)
+                val nameColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Video.Media.DISPLAY_NAME)
+                val dataColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Video.Media.DATA)
+                val sizeColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Video.Media.SIZE)
+                val dateColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Video.Media.DATE_ADDED)
+                val durationColumn = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Video.Media.DURATION)
+
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idColumn)
+                    val name = cursor.getString(nameColumn) ?: "Unknown"
+                    val path = cursor.getString(dataColumn) ?: ""
+                    val size = cursor.getLong(sizeColumn)
+                    val dateAdded = cursor.getLong(dateColumn) * 1000 // Convert to milliseconds
+                    val duration = cursor.getLong(durationColumn)
+
+                    Log.d("VideoService", "Video found: $name | Path: $path | Size: $size")
+
+                    videos.add(
+                        mapOf(
+                            "id" to id,
+                            "name" to name,
+                            "path" to path,
+                            "size" to size,
+                            "dateAdded" to dateAdded,
+                            "duration" to duration.toInt()
+                        )
+                    )
+                }
+            }
+
+            Log.d("VideoService", "✅ Total videos found: ${videos.size}")
+            result.success(videos)
+        } catch (e: Exception) {
+            Log.e("VideoService", "❌ Error fetching videos", e)
+            result.error("ERROR", "Failed to fetch videos: ${e.message}", null)
+        }
+    }
+
+    private fun deleteVideo(path: String, result: Result) {
+        try {
+            val file = java.io.File(path)
+            val deleted = file.delete()
+            result.success(deleted)
+        } catch (e: Exception) {
+            Log.e("VideoService", "Error deleting video", e)
+            result.error("ERROR", "Failed to delete video: ${e.message}", null)
+        }
     }
 }
 // ─────────────────────────────────────────────────────────────────

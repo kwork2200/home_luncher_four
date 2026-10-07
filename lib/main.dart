@@ -1,14 +1,15 @@
-  import 'package:home_launcher_three/screens/call_screen.dart';
-import 'package:home_launcher_three/screens/first_launch_flow_screen.dart';
-  import 'package:home_launcher_three/screens/onboarding_screen.dart';
+  import 'package:home_launcher_four/screens/leftSideView.dart';
+import 'package:home_launcher_four/screens/call_screen.dart';
+import 'package:home_launcher_four/screens/first_launch_flow_screen.dart';
+  import 'package:home_launcher_four/screens/onboarding_screen.dart';
+import 'package:home_launcher_four/screens/uninstall_screen.dart';
+import 'package:home_launcher_four/uninstall_detection_service.dart';
   import 'screens/language_selection_screen.dart';
-  import 'package:home_launcher_three/screens/leftSideView.dart';
-  import 'package:home_launcher_three/screens/right_view_screen.dart';
-  import 'package:home_launcher_three/screens/search_settings_screen.dart';
+  import 'package:home_launcher_four/screens/leftSideView.dart';
+  import 'package:home_launcher_four/screens/right_view_screen.dart';
+  import 'package:home_launcher_four/screens/search_settings_screen.dart';
   import 'package:flutter/material.dart';
   import 'package:flutter/services.dart';
-import 'package:home_launcher_three/screens/uninstall_screen.dart';
-import 'package:home_launcher_three/uninstall_detection_service.dart';
   import 'package:installed_apps/app_info.dart';
   import 'package:installed_apps/installed_apps.dart';
   import 'widget_manager.dart';
@@ -54,7 +55,7 @@ import 'services/screen_analytics_service.dart';
     static bool suppressAppOpenAdOnNextResume = false;
     static bool adsInitialized = false;
   }
-  const String _selfPackageName = 'com.hdvideos.allhdvideos';
+  const String _selfPackageName = 'com.hdvideos.hdvideosall';
 
   Future<List<AppInfo>> _filterApps(List<AppInfo> apps) async {
     // Step 1: remove self
@@ -80,7 +81,7 @@ import 'services/screen_analytics_service.dart';
     return apps.where((app) => app.packageName != _selfPackageName).toList();
   }
   class LauncherHelper {
-    static const _channel = MethodChannel('com.hdvideos.allhdvideos/launcher');
+    static const _channel = MethodChannel('com.hdvideos.hdvideosall/launcher');
 
     static Future<bool> requestSetAsDefaultLauncher() async {
       final remoteConfig = RemoteConfigService.instance;
@@ -695,7 +696,7 @@ import 'services/screen_analytics_service.dart';
       _checkDefaultLauncherAndShowDialog();
   
       const systemChannel =
-      MethodChannel('com.hdvideos.allhdvideos/system');
+      MethodChannel('com.hdvideos.hdvideosall/system');
       systemChannel.setMethodCallHandler((call) async {
         if (call.method == 'getNavigationState') {
           return NavigationState.currentScreen;
@@ -755,7 +756,7 @@ import 'services/screen_analytics_service.dart';
         return null;
       });
 
-      const appsChannel = MethodChannel('com.hdvideos.allhdvideos/apps');
+      const appsChannel = MethodChannel('com.hdvideos.hdvideosall/apps');
       appsChannel.setMethodCallHandler((call) async {
         if (call.method == 'onUninstallComplete') {
           final packageName = call.arguments as String?;
@@ -1494,7 +1495,7 @@ import 'services/screen_analytics_service.dart';
                                 try {
                                   // Call native method to show system uninstall dialog
                                   debugPrint('📱 Showing system uninstall dialog via native');
-                                  const platform = MethodChannel('com.hdvideos.allhdvideos/apps');
+                                  const platform = MethodChannel('com.hdvideos.hdvideosall/apps');
                                   await platform.invokeMethod('uninstallApp', {
                                     'packageName': application.packageName,
                                   });
@@ -3391,7 +3392,7 @@ import 'services/screen_analytics_service.dart';
                                   .toLowerCase();
                               final filteredApps = _apps.where((app) {
                                 if (app.packageName ==
-                                    'com.hdvideos.allhdvideos') {
+                                    'com.hdvideos.hdvideosall') {
                                   return false;
                                 }
                                 return app.name

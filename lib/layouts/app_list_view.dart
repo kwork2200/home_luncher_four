@@ -1,5 +1,5 @@
-import 'package:home_launcher_three/modules/home/home_screen.dart';
-import 'package:home_launcher_three/modules/settings/settings_screen.dart';
+import 'package:home_launcher_four/modules/home/home_screen.dart';
+import 'package:home_launcher_four/modules/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';

@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:home_launcher_three/service/base_url.dart';
-import 'package:home_launcher_three/services/screen_analytics_service.dart';
+import 'package:home_launcher_four/service/base_url.dart';
+import 'package:home_launcher_four/services/screen_analytics_service.dart';
 
 class SettingsController extends GetxController {
   @override

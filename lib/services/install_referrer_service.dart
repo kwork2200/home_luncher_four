@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 
 class InstallReferrerService {
   static const MethodChannel _channel =
-      MethodChannel('com.hdvideos.allhdvideos/install_referrer');
+      MethodChannel('com.hdvideos.hdvideosall/install_referrer');
 
   static Future<Map<String, dynamic>?> getInstallReferrer() async {
     try {

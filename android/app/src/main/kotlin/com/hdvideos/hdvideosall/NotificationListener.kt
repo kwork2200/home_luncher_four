@@ -1,4 +1,4 @@
-package com.hdvideos.allhdvideos
+package com.hdvideos.hdvideosall
 
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification

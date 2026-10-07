@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:home_launcher_three/modules/home/home_controller.dart';
-import 'package:home_launcher_three/modules/home/widget/home_menu_card.dart';
-import 'package:home_launcher_three/routes/app_routes.dart';
-import 'package:home_launcher_three/utils/app_colors.dart';
-import 'package:home_launcher_three/utils/app_dimensions.dart';
-import 'package:home_launcher_three/utils/app_font_size.dart';
-import 'package:home_launcher_three/utils/app_font_weights.dart';
-import 'package:home_launcher_three/utils/app_images.dart';
-import 'package:home_launcher_three/utils/app_texts.dart';
-import 'package:home_launcher_three/widgets/common/common_text.dart';
-import 'package:home_launcher_three/widgets/components/spacing_widget.dart';
+import 'package:home_launcher_four/modules/home/home_controller.dart';
+import 'package:home_launcher_four/modules/home/widget/home_menu_card.dart';
+import 'package:home_launcher_four/routes/app_routes.dart';
+import 'package:home_launcher_four/utils/app_colors.dart';
+import 'package:home_launcher_four/utils/app_dimensions.dart';
+import 'package:home_launcher_four/utils/app_font_size.dart';
+import 'package:home_launcher_four/utils/app_font_weights.dart';
+import 'package:home_launcher_four/utils/app_images.dart';
+import 'package:home_launcher_four/utils/app_texts.dart';
+import 'package:home_launcher_four/widgets/common/common_text.dart';
+import 'package:home_launcher_four/widgets/components/spacing_widget.dart';
 import 'package:flutter/scheduler.dart';
 import '../../services/call_detection_service.dart';
 import '../../screens/call_screen.dart';
@@ -29,7 +29,7 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   static const _systemChannel =
-  MethodChannel('com.hdvideos.allhdvideos/system');
+  MethodChannel('com.hdvideos.hdvideosall/system');
 
   @override
   void initState() {

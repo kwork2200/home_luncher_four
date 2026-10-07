@@ -1,4 +1,4 @@
-package com.hdvideos.allhdvideos
+package com.hdvideos.hdvideosall
 
 import android.content.Context
 import android.view.View

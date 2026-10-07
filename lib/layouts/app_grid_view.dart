@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:home_launcher_three/modules/settings/settings_screen.dart';
+import 'package:home_launcher_four/modules/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -233,7 +233,7 @@ class _AppGridViewState extends State<AppGridView> with WidgetsBindingObserver {
 
     // Always hide FuseLauncher itself from the app list
     appsToShow = appsToShow
-        .where((app) => app.packageName != 'com.hdvideos.allhdvideos')
+        .where((app) => app.packageName != 'com.hdvideos.hdvideosall')
         .toList();
     debugPrint('FuseLauncher: Filtered launcher app, remaining apps=${appsToShow.length}');
 

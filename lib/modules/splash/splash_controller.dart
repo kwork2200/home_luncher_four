@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:get/get.dart';
-import 'package:home_launcher_three/routes/app_routes.dart';
-import 'package:home_launcher_three/services/screen_analytics_service.dart';
+import 'package:home_launcher_four/routes/app_routes.dart';
+import 'package:home_launcher_four/services/screen_analytics_service.dart';
 
 class SplashController extends GetxController {
   Timer? _timer;

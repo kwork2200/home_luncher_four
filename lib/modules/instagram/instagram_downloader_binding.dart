@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:home_launcher_three/modules/instagram/instagram_downloader_controller.dart';
+import 'package:home_launcher_four/modules/instagram/instagram_downloader_controller.dart';
 
 class InstagramDownloaderBinding extends Bindings {
   @override

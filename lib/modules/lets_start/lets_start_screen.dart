@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:home_launcher_three/modules/lets_start/lets_start_controller.dart';
-import 'package:home_launcher_three/routes/app_routes.dart';
-import 'package:home_launcher_three/utils/app_colors.dart';
-import 'package:home_launcher_three/utils/app_dimensions.dart';
-import 'package:home_launcher_three/utils/app_font_size.dart';
-import 'package:home_launcher_three/utils/app_font_weights.dart';
-import 'package:home_launcher_three/utils/app_images.dart';
-import 'package:home_launcher_three/utils/app_texts.dart';
-import 'package:home_launcher_three/widgets/common/common_button.dart';
-import 'package:home_launcher_three/widgets/common/common_text.dart';
-import 'package:home_launcher_three/widgets/components/spacing_widget.dart';
+import 'package:home_launcher_four/modules/lets_start/lets_start_controller.dart';
+import 'package:home_launcher_four/routes/app_routes.dart';
+import 'package:home_launcher_four/utils/app_colors.dart';
+import 'package:home_launcher_four/utils/app_dimensions.dart';
+import 'package:home_launcher_four/utils/app_font_size.dart';
+import 'package:home_launcher_four/utils/app_font_weights.dart';
+import 'package:home_launcher_four/utils/app_images.dart';
+import 'package:home_launcher_four/utils/app_texts.dart';
+import 'package:home_launcher_four/widgets/common/common_button.dart';
+import 'package:home_launcher_four/widgets/common/common_text.dart';
+import 'package:home_launcher_four/widgets/components/spacing_widget.dart';
 
 class LetsStartScreen extends GetView<LetsStartController> {
   const LetsStartScreen({super.key});

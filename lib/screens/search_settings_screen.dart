@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:home_launcher_three/utils/app_colors.dart';
+import 'package:home_launcher_four/utils/app_colors.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../utils/ad_helper.dart';
@@ -19,7 +19,7 @@ class SearchFeedScreen extends StatefulWidget {
 }
 
 class _SearchFeedScreenState extends State<SearchFeedScreen> {
-  static const _systemChannel = MethodChannel('com.hdvideos.allhdvideos/system');
+  static const _systemChannel = MethodChannel('com.hdvideos.hdvideosall/system');
   final TextEditingController _searchController = TextEditingController();
   WebViewController? _webViewController;
   bool _showSearchResults = false;

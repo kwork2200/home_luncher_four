@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
-import 'package:home_launcher_three/utils/app_colors.dart';
+import 'package:home_launcher_four/utils/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:home_launcher_three/widgets/hybrid_native_ad_widget.dart';
+import 'package:home_launcher_four/widgets/hybrid_native_ad_widget.dart';
 
 import '../navigation_state.dart';
 import '../routes/app_routes.dart';
